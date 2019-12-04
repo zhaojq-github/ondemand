@@ -5,3 +5,7 @@
 .table-view-actions {
     margin-bottom: 1rem;
 }
+
+ol.breadcrumb > li.breadcrumb-item:nth-of-type(2)::before {
+    content: '';
+}

@@ -44,7 +44,7 @@ class FileSystem::Operation
         if path.directory? && path == Pathname.new('/')
             path.children
         elsif path.directory?
-            [Pathname.new(path).join('..')] + path.children
+            path.children
         elsif path.file?
             [path]
         elsif ! path.exist?

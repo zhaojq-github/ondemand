@@ -1,19 +1,17 @@
-import Vue from 'vue/dist/vue.esm'
+import Vue from 'vue'
 import {ServerTable, ClientTable, Event} from 'vue-tables-2'
 import VModal from 'vue-js-modal'
 
-Vue.use(ClientTable, {}, false, 'bootstrap3', 'default')
+Vue.use(ClientTable, {}, true, 'bootstrap3', 'default')
 Vue.use(VModal, { dynamic: true })
 
 import FilemanagerList from '../filemanager/components/FilemanagerList'
-import TableButtons from '../filemanager/components/TableButtons'
-
-Vue.component('table-buttons', TableButtons)
+import store from '../filemanager/store'
 
 document.addEventListener('DOMContentLoaded', () => {
   const app = new Vue({
     el: '#filemanager-list',
-    // window.STORE is rendered server side
-    render: h => h(FilemanagerList, { props: { store: window.STORE } })
+    store,
+    render: h => h(FilemanagerList)
   })
 })

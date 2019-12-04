@@ -1,27 +1,35 @@
 <template>
-  <div>
+  <div
+    v-on:keydown="onKeyDown"
+    v-on:keyup="onKeyUp"
+  >
     <v-client-table
       ref='dataTable'
-      :data="store.file_system_entries"
+      :data="fs_entries()"
       :columns="columns"
       :options="options"
-      
+      name="table"
+
       v-on:row-click="onRowClick"
-      v-on:filter="cursor = null"
+      v-on:filter="onFilter"
+      v-on:sorted="onSort"
     >
-      <a slot="basename" slot-scope="{row}" :href="file_link(row.path)">{{ row.basename }}</a>
+      <span slot="basename" slot-scope="{row}"><i :class="file_icon(row.mime_type)"></i> <a :href="file_link(row.path)">{{ row.basename }}</a></span>
       <span slot="size" slot-scope="{row}">{{ file_size(row.size, {round: 0}) }}</span>
       <span slot="modified" slot-scope="{row}">{{ moment_unix(row.modified).format() }}</span>
+      <div slot="beforeTable" class="form-group">
+        <input type="checkbox" v-on:click="updateTable">
+        <label for="checkbox">Show dot files</label>
+      </div>
     </v-client-table>
     <modals-container/>
   </div>
 </template>
 
 <script>
-import {file_link} from '../helper'
+import {file_icon, file_link} from '../helper'
 import filesize from 'filesize'
 import moment from 'moment'
-// import UploadModal from './UploadModal'
 import * as Path from 'path'
 
 // polyfill for MAX_SAFE_INTEGER
@@ -30,14 +38,7 @@ if (!Number.MAX_SAFE_INTEGER) {
     Number.MAX_SAFE_INTEGER = 9007199254740991; // Math.pow(2, 53) - 1;
 }
 
-window.Selection = {
-  cursor: null,
-  _selection: {},
-  updateCursor: function(value) {
-    this.cursor = value
-  }
-}
-
+// available in underscore/lodash
 function clamp(min, max, num) {
   return Math.max(min, Math.min(num, max))
 }
@@ -50,7 +51,7 @@ export default {
       columns: ['basename', 'size', 'modified', 'owner', 'group', 'permissions'],
       dataTable: null,
       options: {
-        // childRow: 'table-buttons',
+        // filterable: ['basename', 'size', 'modified', 'owner', 'group', 'permissions'],
         columnsClasses: {
           modified:    'hidden-xs hidden-sm',
           owner:       'hidden-xs hidden-sm',
@@ -58,41 +59,55 @@ export default {
           permissions: 'hidden-xs hidden-sm hidden-md',
         },
         perPage: Number.MAX_SAFE_INTEGER,
-        perPageValues: [],
+        perPageValues: []
       },
       cursor: null,
-      childRows: null
+      showDotFiles: false,
+      keydown: {
+        'Shift': false,
+        'Meta': false,
+        'Control': false
+      }
     }
   },
   methods: {
+    file_icon: file_icon,
     file_link: file_link,
     file_size: filesize,
     moment_unix: moment.unix,
     onRowClick: function(payload) {
       const index = payload.index
+      if(this.multiselect) {
+        this.$store.commit('toggleSelection', payload)
+      } else {
+        this.$store.commit('clearSelection')
+        this.$store.commit('toggleSelection', payload)
+      }
+
       this.cursor = (this.cursor === index) ? null : index
       this.onSelectionUpdate()
     },
     onSelectionUpdate: function() {
       self = this
-      this.childRows.forEach((row, index) => {
-        if(self.cursor === index + 1) {
-          row.style = 'background: red'
+      const selection = this.$store.state.selection
+      // .allFilteredData is in presentation order
+      const tableData = this.$refs.dataTable.allFilteredData
+      console.log(['First', tableData[0].basename, selection])
+      console.log(['Last', tableData[tableData.length - 1].basename, selection])
+      this.childRows().forEach((rowElement, index) => {
+        if(self.rowIsSelected(tableData[index], selection)) {
+          rowElement.style = 'background-color: #e7e7e7'
         } else {
-          row.style = ''
+          rowElement.style = ''
         }
       })
     },
-    // rowIsSelected: function(row) {
-    //   const path = row.children[0].children[0].innerHTML
-    //   return this.cursor &&
-    //   (
-    //     (path === Path.basename(this.cursor)) ||
-    //     (this.cursor === '/' && Path.basename(path) === '')
-    //   )
-    // },
+    rowIsSelected: function(rowData, selection) {      
+      return selection.hasOwnProperty(rowData.basename)
+    },
     onKeyDown: function(event) {
-      switch(event.key) {
+      const key = event.key
+      switch(key) {
       case 'ArrowDown':
         this.shiftSelection(1)
         event.preventDefault()
@@ -101,50 +116,74 @@ export default {
         this.shiftSelection(-1)
         event.preventDefault()
         break
+      case 'Shift':
+      case 'Control':
+      case 'Meta':
+        this.keydown[key] = true
+        break
       // default:
       //   console.log(event.key)
       }
 
       this.onSelectionUpdate()
     },
+    onKeyUp: function(event) {
+      const key = event.key
+      switch(key) {
+      case 'Shift':
+      case 'Control':
+      case 'Meta':
+        this.keydown[key] = false
+        break
+      }
+    },
     shiftSelection: function(step) {
-      console.log(`Before: ${this.cursor} + ${step}`)
       if(this.cursor) {
         this.cursor = clamp(
           1,
           this.cursor + step,
-          this.childRows.length
+          this.childRows().length
         )
       }
-      console.log(`After: ${this.cursor}`)
     },
-    updateChildRows: function() {
-      this.childRows = this.dataTable.$el.querySelectorAll('tr.VueTables__row')
-    }
+    onSort: function(payload) {
+      this.onSelectionUpdate()
+    },
+    onFilter: function(payload) {
+      this.cursor = null
+      this.onSelectionUpdate()
+    },
+    updateTable: function() {
+      this.showDotFiles = ! this.showDotFiles
+      this.$store.commit('toggleShowDotfiles')
+      this.$store.commit('updateTable', this.fs_entries())
+    },
+    childRows() {
+      return this.$refs.dataTable.$el.querySelectorAll('tr.VueTables__row')
+    },
+    fs_entries() {
+      return this.$store.state.file_system_entries.filter((entry) => {
+        if(! this.showDotFiles && entry.basename[0] === '.') {
+          return false
+        }
+
+        return true
+      })
+    },
   },
   mounted () {
     this.dataTable = this.$refs.dataTable
-    this.updateChildRows()
-    window.addEventListener('keydown', this.onKeyDown)
+    this.$store.commit('setTable', this.dataTable)
+    // window.addEventListener('keydown', this.onKeyDown)
+    // window.addEventListener('keyup', this.onKeyUp)
+  },
+  computed: {
+    multiselect() {
+      return Object.values(this.keydown).some((value) => {return value})
+    }
   }
 }
 </script>
 
 <style lang="css">
-.VueTables__child-row-toggler {
-    width: 16px;
-    height: 16px;
-    line-height: 16px;
-    display: block;
-    margin: auto;
-    text-align: center;
-}
-
-.VueTables__child-row-toggler--closed::before {
-    content: "+";
-}
-
-.VueTables__child-row-toggler--open::before {
-    content: "-";
-}
 </style>

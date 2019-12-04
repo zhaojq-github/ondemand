@@ -32,6 +32,7 @@
 
 # files used for deployment should not be versioned
 /apps/*/public/assets/
+/apps/*/public/packs/
 /apps/*/public/.htaccess
 /apps/*/.env.production.local
 /apps/*/.env.local*
