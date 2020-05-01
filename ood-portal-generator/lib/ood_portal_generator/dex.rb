@@ -14,6 +14,7 @@ module OodPortalGenerator
         @enable = false
         return
       else
+        config = config.to_h.each_with_object({}) { |(k, v), h| h[k.to_sym] = v unless v.nil? }
         @enable = true
       end
       ssl = config.fetch(:ssl, !view.ssl.nil?)
