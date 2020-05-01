@@ -5,7 +5,7 @@ module OodPortalGenerator
   # A view class that renders an OOD portal Apache configuration file
   class View
     attr_reader :ssl, :protocol, :servername, :port
-    attr_accessor :logout_redirect
+    attr_accessor :user_map_cmd, :logout_redirect
     attr_accessor :oidc_uri, :oidc_client_secret, :oidc_remote_user_claim, :oidc_client_id, :oidc_provider_metadata_url, :oidc_redirect_uri
     # @param opts [#to_h] the options describing the context used to render the
     #   template
@@ -87,9 +87,6 @@ module OodPortalGenerator
       @oidc_session_inactivity_timeout  = opts.fetch(:oidc_session_inactivity_timeout, 28800)
       @oidc_session_max_duration        = opts.fetch(:oidc_session_max_duration, 28800)
       @oidc_settings                    = opts.fetch(:oidc_settings, {})
-      if @oidc_remote_user_claim == 'email'
-        @user_map_cmd = "/opt/ood/ood_auth_map/bin/ood_auth_map.regex --regex='^([^@]+)@.*$'"
-      end
     end
 
     # Helper method to escape IP for maintenance rewrite condition

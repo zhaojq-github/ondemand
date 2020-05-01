@@ -158,7 +158,7 @@ describe OodPortalGenerator::Application do
             }]
           }
         })
-        expected_rendered = read_fixture('ood-portal.conf.dex-full').gsub('OIDCRemoteUserClaim email', 'OIDCRemoteUserClaim preferred_username')
+        expected_rendered = read_fixture('ood-portal.conf.dex-ldap')
         expect(described_class.output).to receive(:write).with(expected_rendered)
         expected_dex_yaml = read_fixture('dex.yaml.ldap').gsub('/etc/ood/dex', config_dir)
         expect(described_class.dex_output).to receive(:write).with(expected_dex_yaml)

@@ -97,6 +97,9 @@ module OodPortalGenerator
         view.oidc_provider_metadata_url = "#{@dex_config[:issuer]}/.well-known/openid-configuration"
         view.oidc_client_id = client_id
         view.oidc_remote_user_claim = 'email' if connectors.nil?
+        if view.oidc_remote_user_claim == 'email'
+          view.user_map_cmd = "/opt/ood/ood_auth_map/bin/ood_auth_map.regex --regex='^([^@]+)@.*$'"
+        end
         view.oidc_client_secret = client_secret
         view.logout_redirect = "/oidc?logout=#{client_protocol}#{client_id}#{client_port}".gsub('://', '%3A%2F%2F')
       end
