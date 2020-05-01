@@ -43,3 +43,6 @@ connectors:
 oauth2:
   skipApprovalScreen: true
 enablePasswordDB: false
+frontend:
+  dir: "/usr/share/ondemand-dex/web"
+  theme: ondemand

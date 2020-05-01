@@ -90,8 +90,12 @@ module OodPortalGenerator
           userID: '08a8684b-db88-4b73-90a9-3cd1661f5466',
         }]
       end
-      frontend = config.fetch(:frontend, nil)
-      @dex_config[:frontend] = frontend unless frontend.nil?
+      frontend = config.fetch(:frontend, {
+        theme: 'ondemand',
+      })
+      @dex_config[:frontend] = {
+        dir: '/usr/share/ondemand-dex/web',
+      }.merge(frontend)
       if enabled? && self.class.installed?
         view.oidc_uri = '/oidc'
         view.oidc_redirect_uri = client_redirect_uri
