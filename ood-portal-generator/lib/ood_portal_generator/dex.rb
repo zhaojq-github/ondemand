@@ -48,7 +48,7 @@ module OodPortalGenerator
           else
             next
           end
-          if File.exists?(value)
+          if File.exists?(value) && self.class.installed? && enabled?
             FileUtils.cp(value, newpath, preserve: true, verbose: true)
             FileUtils.chown(OodPortalGenerator.dex_user, OodPortalGenerator.dex_group, newpath, verbose: true)
           end
