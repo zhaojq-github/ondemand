@@ -79,12 +79,13 @@ module OodPortalGenerator
       servername = @servername || OodPortalGenerator.fqdn
       @oidc_provider_metadata_url       = opts.fetch(:oidc_provider_metadata_url, nil)
       @oidc_client_id                   = opts.fetch(:oidc_client_id, nil)
+      @oidc_client_secret               = opts.fetch(:oidc_client_secret, nil)
       @oidc_redirect_uri                = "#{protocol}#{servername}#{@oidc_uri}"
       @oidc_remote_user_claim           = opts.fetch(:oidc_remote_user_claim, 'preferred_username')
-      @oidc_client_secret               = opts.fetch(:oidc_client_secret, nil)
       @oidc_scope                       = opts.fetch(:oidc_scope, "openid profile email")
       @oidc_crypto_passphrase           = Digest::SHA1.hexdigest(servername)
       @oidc_session_inactivity_timeout  = opts.fetch(:oidc_session_inactivity_timeout, 28800)
+      @oidc_session_max_duration        = opts.fetch(:oidc_session_max_duration, 28800)
       @oidc_settings                    = opts.fetch(:oidc_settings, {})
       if @oidc_remote_user_claim == 'email'
         @user_map_cmd = "/opt/ood/ood_auth_map/bin/ood_auth_map.regex --regex='^([^@]+)@.*$'"
