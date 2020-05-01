@@ -189,18 +189,20 @@ module OodPortalGenerator
           puts "No change in Apache config."
         end
 
-        if ! File.zero?(new_dex_config.path) && ! files_identical?(new_dex_config.path, dex_config)
-          dex_changed = true
-          if File.exist?(dex_config)
-            puts "Backing up previous Dex config to: '#{dex_config_bak}'"
-            FileUtils.mv(dex_config, dex_config_bak, verbose: true)
+        if ! File.zero?(new_dex_config.path)
+          if ! files_identical?(new_dex_config.path, dex_config)
+            dex_changed = true
+            if File.exist?(dex_config)
+              puts "Backing up previous Dex config to: '#{dex_config_bak}'"
+              FileUtils.mv(dex_config, dex_config_bak, verbose: true)
+            end
+            puts "Generating new Dex config at: #{dex_config}"
+            FileUtils.mv(new_dex_config.path, dex_config, verbose: true)
+            FileUtils.chown(OodPortalGenerator.dex_user, OodPortalGenerator.dex_group, dex_config, verbose: true)
+            FileUtils.chmod(0600, dex_config, verbose: true)
+          else
+            puts "No change in the Dex config."
           end
-          puts "Generating new Dex config at: #{dex_config}"
-          FileUtils.mv(new_dex_config.path, dex_config, verbose: true)
-          FileUtils.chown(OodPortalGenerator.dex_user, OodPortalGenerator.dex_group, dex_config, verbose: true)
-          FileUtils.chmod(0600, dex_config, verbose: true)
-        else
-          puts "No change in the Dex config."
         end
 
         new_apache.unlink
