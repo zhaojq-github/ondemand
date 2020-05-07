@@ -111,6 +111,7 @@ Listen <%= addr_port %>
   OIDCCryptoPassphrase <%= @oidc_crypto_passphrase %>
   OIDCSessionInactivityTimeout <%= @oidc_session_inactivity_timeout %>
   OIDCSessionMaxDuration <%= @oidc_session_max_duration %>
+  OIDCStateMaxNumberOfCookies <%= @oidc_state_max_number_of_cookies %>
   <%- @oidc_settings.keys.sort do |oidc_setting| -%>
   <%= oidc_setting %> <%= @oidc_settings[oidc_setting] %>
   <%- end -%>
