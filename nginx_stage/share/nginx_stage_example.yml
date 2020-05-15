@@ -90,6 +90,10 @@
 #
 #passenger_python: '/opt/ood/nginx_stage/bin/python'
 
+# Max file upload size (e.g., 10G)
+#
+#nginx_file_upload_max: '10G'
+
 # Root location of per-user NGINX configs
 #
 #pun_config_path: '/var/lib/ondemand-nginx/config/puns/%{user}.conf'
